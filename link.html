@@ -3,18 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>채용 정보 (필터 옵션 추가)</title>
+    <title>통합 개발자 채용 검색기 (JK & Saramin)</title>
     <style>
         body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background: #f1f3f5; padding: 20px; display: flex; justify-content: center; margin: 0; }
         .container { width: 100%; max-width: 900px; background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; }
         
         /* Header */
         .header { background: #fff; padding: 20px 25px; border-bottom: 1px solid #e9ecef; }
-        .header h1 { margin: 0; font-size: 20px; color: #333; font-weight: 700; }
+        .header h1 { margin: 0; font-size: 20px; color: #333; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
         .header p { margin: 5px 0 0; font-size: 13px; color: #868e96; }
 
-        /* Tabs */
-        .tabs { display: flex; background: #f8f9fa; border-bottom: 1px solid #e9ecef; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        /* Platform Switcher (Main Tabs) */
+        .platform-tabs { display: flex; padding: 10px 25px 0; gap: 5px; background: #fff; }
+        .pf-btn {
+            padding: 10px 20px; border: none; background: #f1f3f5; color: #868e96; 
+            font-size: 15px; font-weight: 700; border-radius: 8px 8px 0 0; cursor: pointer; transition: 0.2s;
+        }
+        .pf-btn.active { background: #333; color: #fff; }
+        
+        /* Category Tabs (Sub Tabs) */
+        .tabs { display: flex; background: #f8f9fa; border-bottom: 1px solid #e9ecef; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
         .tab-btn { 
             flex: 1; min-width: 80px; padding: 15px; border: none; background: transparent; 
             cursor: pointer; font-weight: 600; color: #868e96; font-size: 14px; 
@@ -24,9 +32,13 @@
         .tab-btn.active { color: #228be6; background: #fff; }
         .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: #228be6; }
 
-        /* Content */
-        .content { display: none; padding: 0; }
-        .content.active { display: block; }
+        /* Platform Content Wrapper */
+        .platform-content { display: none; }
+        .platform-content.active { display: block; }
+
+        /* Keyword Lists */
+        .content-list { display: none; padding: 0; }
+        .content-list.active { display: block; }
 
         /* Rows */
         .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #f1f3f5; transition: background 0.1s; }
@@ -40,24 +52,20 @@
             flex: 1; text-align: center; padding: 10px 0; border-radius: 6px; 
             text-decoration: none; font-size: 13px; font-weight: 600; color: #fff;
             transition: 0.2s; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); cursor: pointer;
         }
         
-        /* Colors */
-        .btn-raw { background: #343a40; color: #fff; border: 1px solid #343a40; } /* 조건없음(검정) */
-        .btn-raw:hover { background: #212529; }
+        /* Common Button Colors */
+        .btn-raw { background: #343a40; } .btn-raw:hover { background: #212529; }
+        .btn-any { background: #adb5bd; } .btn-any:hover { background: #868e96; }
+        .btn-high { background: #ffc078; color: #d9480f; } .btn-high:hover { background: #ffa94d; }
+        .btn-col { background: #63e6be; color: #087f5b; } .btn-col:hover { background: #38d9a9; }
+        .btn-univ { background: #74c0fc; color: #1864ab; } .btn-univ:hover { background: #4dabf7; }
 
-        .btn-0 { background: #ced4da; color: #495057; } /* 학력무관 */
-        .btn-0:hover { background: #adb5bd; color: #212529; }
-        
-        .btn-3 { background: #ffc078; color: #d9480f; } /* 고졸 */
-        .btn-3:hover { background: #ffa94d; }
-        
-        .btn-4 { background: #63e6be; color: #087f5b; } /* 초대졸 */
-        .btn-4:hover { background: #38d9a9; }
-        
-        .btn-5 { background: #74c0fc; color: #1864ab; } /* 대졸 */
-        .btn-5:hover { background: #4dabf7; }
+        /* Saramin Specific Override for Visual Distinction */
+        #saramin-view .btn-high { background: #ffd43b; }
+        #saramin-view .btn-col { background: #69db7c; }
+        #saramin-view .btn-univ { background: #4dabf7; }
 
         /* Mobile */
         @media (max-width: 600px) {
@@ -72,29 +80,35 @@
 
 <div class="container">
     <div class="header">
-        <h1>개발자 채용 검색기</h1>
-        <p>기본 필터: 신입, 경력무관 / 서울·인천·부천 / 국비와 관련된 키워드 제외<br>
-        <span style="color:#e03131;">* [조건없음] 버튼은 지역/경력/학력 제한 없이 검색합니다.</span></p>
+        <h1>개발자 채용 통합 검색</h1>
+        <p>신입 / 서울·인천·부천 / 국비·강사 제외<br>
+        <span style="color:#e03131;">* [조건없음] 버튼은 필터 없이 검색합니다.</span></p>
+    </div>
+
+    <div class="platform-tabs">
+        <button class="pf-btn active" onclick="switchPlatform('jobkorea', this)">잡코리아 (JK)</button>
+        <button class="pf-btn" onclick="switchPlatform('saramin', this)">사람인 (Saramin)</button>
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="setTab('fullstack')">풀스택</button>
-        <button class="tab-btn" onclick="setTab('backend')">백엔드</button>
-        <button class="tab-btn" onclick="setTab('frontend')">프론트</button>
-        <button class="tab-btn" onclick="setTab('skills')">스킬별</button>
-        <button class="tab-btn" onclick="setTab('etc')">기타직무</button>
+        <button class="tab-btn active" onclick="switchCategory('fullstack', this)">풀스택</button>
+        <button class="tab-btn" onclick="switchCategory('backend', this)">백엔드</button>
+        <button class="tab-btn" onclick="switchCategory('frontend', this)">프론트</button>
+        <button class="tab-btn" onclick="switchCategory('skills', this)">스킬별</button>
+        <button class="tab-btn" onclick="switchCategory('etc', this)">기타직무</button>
     </div>
 
-    <div id="fullstack" class="content active"></div>
-    <div id="backend" class="content"></div>
-    <div id="frontend" class="content"></div>
-    <div id="skills" class="content"></div>
-    <div id="etc" class="content"></div>
+    <div id="jobkorea-view" class="platform-content active">
+        </div>
+
+    <div id="saramin-view" class="platform-content">
+        </div>
 
 </div>
 
 <script>
-    const data = {
+    // === 데이터 정의 ===
+    const keywordData = {
         'fullstack': ["풀스택", "웹 개발자", "웹 프로그램", "웹 기반"],
         'backend': ["백엔드", "자바웹", "Spring", "서버 개발", "Node.js"],
         'frontend': ["프론트엔드", "퍼블리셔", "React.js", "Vue.js", "Javascript"],
@@ -102,57 +116,149 @@
         'etc': ["IT QA", "IT QC", "시스템 엔지니어", "네트워크 엔지니어", "보안 엔지니어", "기술지원", "운영지원", "서비스 기획", "기술 영업"]
     };
 
-    function renderTabs() {
-        for (const [key, items] of Object.entries(data)) {
-            const container = document.getElementById(key);
-            let html = '';
-            items.forEach(keyword => {
-                html += `
+    // === 초기 렌더링 ===
+    function init() {
+        renderPlatform('jobkorea-view', 'goJK');
+        renderPlatform('saramin-view', 'goSaramin');
+    }
+
+    // 각 플랫폼별 HTML 생성기
+    function renderPlatform(containerId, funcName) {
+        const container = document.getElementById(containerId);
+        let fullHtml = '';
+
+        for (const [catKey, keywords] of Object.entries(keywordData)) {
+            // 카테고리별 div 생성 (기본적으로 첫번째 카테고리만 active)
+            const isActive = catKey === 'fullstack' ? 'active' : '';
+            let catHtml = `<div id="${containerId}-${catKey}" class="content-list ${isActive}">`;
+
+            keywords.forEach(word => {
+                catHtml += `
                 <div class="row">
-                    <div class="label">${keyword}</div>
+                    <div class="label">${word}</div>
                     <div class="btn-group">
-                        <a href="#" onclick="go('${keyword}', 'raw')" class="btn btn-raw">조건없음</a>
-                        <a href="#" onclick="go('${keyword}', 0)" class="btn btn-0">학력무관</a>
-                        <a href="#" onclick="go('${keyword}', 3)" class="btn btn-3">고졸↑</a>
-                        <a href="#" onclick="go('${keyword}', 4)" class="btn btn-4">초대졸↑</a>
-                        <a href="#" onclick="go('${keyword}', 5)" class="btn btn-5">대졸↑</a>
+                        <a onclick="${funcName}('${word}', 'raw')" class="btn btn-raw">조건없음</a>
+                        <a onclick="${funcName}('${word}', 'none')" class="btn btn-any">학력무관</a>
+                        <a onclick="${funcName}('${word}', 'high')" class="btn btn-high">고졸↑</a>
+                        <a onclick="${funcName}('${word}', 'col')" class="btn btn-col">초대졸↑</a>
+                        <a onclick="${funcName}('${word}', 'univ')" class="btn btn-univ">대졸↑</a>
                     </div>
                 </div>`;
             });
-            container.innerHTML = html;
+            catHtml += `</div>`;
+            fullHtml += catHtml;
         }
+        container.innerHTML = fullHtml;
     }
 
-    function go(keyword, eduVal) {
-        event.preventDefault();
-        
+
+    // ==========================================
+    // LOGIC: JOBKOREA
+    // ==========================================
+    function goJK(keyword, mode) {
         const params = new URLSearchParams();
         params.append('stext', keyword);
-        // 제외어는 항상 포함 (요청사항)
         params.append('excludeText', "국비,교육생,취업연계,취업교육,강사,교사,훈련,수강,부트캠프,전문연구요원,학생,모집,알바");
-        
-        // 탭 타입(채용공고)은 유지 (뉴스/기업정보 제외 목적)
         params.append('tabType', 'recruit');
 
-        // eduVal이 'raw'가 아닐 때만 필터(지역, 경력, 학력) 적용
-        if (eduVal !== 'raw') {
-            params.append('careerType', '1,4'); // 신입
-            params.append('local', 'I000,K000,B125'); // 서울, 인천, 부천
-            params.append('edu', eduVal); // 학력
+        if (mode !== 'raw') {
+            params.append('careerType', '1'); // 신입
+            params.append('local', 'I000,K000,B150'); // 서울, 인천, 부천
+            
+            // edu 매핑 (none=0, high=3, col=4, univ=5)
+            if(mode === 'none') params.append('edu', '0');
+            else if(mode === 'high') params.append('edu', '3');
+            else if(mode === 'col') params.append('edu', '4');
+            else if(mode === 'univ') params.append('edu', '5');
         }
-        // 'raw'일 경우 위 3개 파라미터(careerType, local, edu)가 추가되지 않음 -> 전체 검색
-
         window.open(`https://www.jobkorea.co.kr/Search/?${params.toString()}`, '_blank');
     }
 
-    function setTab(tabId) {
-        document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        event.target.classList.add('active');
+
+    // ==========================================
+    // LOGIC: SARAMIN (순서 강제 로직)
+    // ==========================================
+    function goSaramin(keyword, mode) {
+        const searchword = encodeURIComponent(keyword);
+        const exc_keyword = encodeURIComponent("국비,교육생,취업연계,취업교육,강사,교사,훈련,수강,부트캠프,전문연구요원,학생,모집,알바");
+        
+        // 학력 범위 설정
+        let eduParams = "";
+        let eduNone = "";
+        
+        if (mode === 'none') {
+            eduNone = "y"; 
+            eduParams = "&edu_min=8&edu_max=11"; 
+        } else if (mode === 'high') {
+            eduNone = "y"; 
+            eduParams = "&edu_min=6&edu_max=9";
+        } else if (mode === 'col') {
+            eduNone = "y";
+            eduParams = "&edu_min=7&edu_max=10";
+        } else if (mode === 'univ') {
+            eduNone = "y";
+            eduParams = "&edu_min=8&edu_max=11";
+        } else if (mode === 'raw') {
+             // 조건없음
+             window.open(`https://www.saramin.co.kr/zf_user/search?searchType=search&searchword=${searchword}&exc_keyword=${exc_keyword}&panel_type=&search_optional_item=y&search_done=y&panel_count=y&preview=y`, '_blank');
+             return;
+        }
+
+        // URL 조립 (순서 중요)
+        let url = "https://www.saramin.co.kr/zf_user/search?";
+        url += "searchType=search";
+        url += `&searchword=${searchword}`;
+        url += "&loc_mcd=101000%2C108000"; // 서울, 인천
+        url += "&loc_cd=102150%2C102160%2C102140%2C102170"; // 부천 상세
+        url += "&exp_cd=1"; // 신입
+        url += `&exp_none=y`; // 경력무관 포함
+        url += eduParams;
+        url += "&company_cd=0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C9%2C10";
+        url += `&exc_keyword=${exc_keyword}`;
+        url += "&panel_type=";
+        url += "&search_optional_item=y";
+        url += "&search_done=y";
+        url += "&panel_count=y";
+        url += "&preview=y";
+
+        window.open(url, '_blank');
     }
 
-    renderTabs();
+
+    // ==========================================
+    // UI CONTROL
+    // ==========================================
+    
+    // 플랫폼 탭 전환 (JobKorea <-> Saramin)
+    function switchPlatform(platform, btn) {
+        // 버튼 활성화
+        document.querySelectorAll('.pf-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // 뷰 전환
+        document.querySelectorAll('.platform-content').forEach(el => el.classList.remove('active'));
+        document.getElementById(platform + '-view').classList.add('active');
+    }
+
+    // 카테고리 탭 전환 (Fullstack <-> Backend ...)
+    // 두 플랫폼 모두의 해당 카테고리를 활성화해둠 (플랫폼 전환 시 바로 보이게)
+    function switchCategory(catKey, btn) {
+        // 버튼 활성화
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // 모든 리스트 숨김
+        document.querySelectorAll('.content-list').forEach(el => el.classList.remove('active'));
+
+        // JobKorea의 해당 카테고리 활성화
+        document.getElementById(`jobkorea-view-${catKey}`).classList.add('active');
+        // Saramin의 해당 카테고리 활성화
+        document.getElementById(`saramin-view-${catKey}`).classList.add('active');
+    }
+
+    // 실행
+    init();
+
 </script>
 
 </body>
